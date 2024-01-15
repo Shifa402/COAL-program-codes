@@ -1,0 +1,68 @@
+;right-angled triangle
+
+[org 0x0100]
+jmp start
+
+clrscr:
+push es
+push ax
+push di
+
+mov ax, 0xb800
+mov es, ax
+mov di, 0
+
+nextloc:
+mov word[es:di], 0x0720
+add di, 2
+cmp di, 4000
+jne nextloc
+pop di
+pop ax
+pop es
+ret
+
+print:
+push bp
+mov bp, sp
+push es
+push ax
+push cx
+push si
+push di
+push bx
+
+mov bx, -162
+mov cx, [bp + 4]
+mov ax, 0xb800
+mov es, ax
+
+next_col:
+add bx, 162
+mov di, bx
+mov si, cx
+
+next:
+mov al,'*'
+mov ah, 0x07
+mov [es:di], ax
+add di, 160
+dec si
+cmp si, 0
+jne next
+
+loop next_col
+
+popa
+ret 2
+
+start:
+call clrscr
+
+mov ax, 5
+push ax
+
+call print
+
+mov ax, 0x4c00
+int 0x21
