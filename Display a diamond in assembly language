@@ -1,0 +1,115 @@
+;diamond
+
+[org 0x0100]
+jmp start
+
+clrscr:
+push es
+push ax
+push di
+
+mov ax, 0xb800
+mov es, ax
+mov di, 0
+
+nextloc:
+mov word[es:di], 0x0720
+add di, 2
+cmp di, 4000
+jne nextloc
+pop di
+pop ax
+pop es
+ret
+
+
+print:
+push bp
+mov bp, sp
+push es
+push ax
+push cx
+push si
+push di
+push bx
+push dx
+
+mov ax, 0xb800
+mov es, ax
+mov al, 80
+mul byte [bp+6]
+add ax, [bp+8]
+shl ax, 1
+mov bx, ax
+
+
+mov dx, -1
+mov cx, [bp+4]
+
+next_col1:
+mov di, bx
+sub di, 158
+mov bx, di
+mov si, dx
+add si, 2
+mov dx, si
+
+label1:
+mov al, '*'
+mov ah, 0x07
+mov [es:di], ax
+add di, 160
+dec si
+cmp si, 0
+jne label1
+
+loop next_col1
+
+xor si, si
+xor ax, ax
+xor cx, cx
+xor dx, dx
+;xor bp, bp
+
+
+mov dx, 13
+mov cx, [bp+4]
+dec cx
+
+next_col2:
+mov di, bx
+add di, 162
+mov bx, di
+mov si, dx
+sub si, 2
+mov dx, si
+
+label2:
+mov al, '*'
+mov ah, 0x07
+mov [es:di], ax
+add di, 160
+dec si
+cmp si, 0
+jne label2
+
+loop next_col2
+
+
+popa
+ret 6
+
+start:
+call clrscr
+
+mov ax, 30
+push ax
+mov ax, 13
+push ax
+mov ax, 7
+push ax
+
+call print
+
+mov ax, 0x4c00
+int 0x21
