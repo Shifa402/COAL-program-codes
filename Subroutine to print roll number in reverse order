@@ -1,0 +1,82 @@
+;Write a subroutine in assembly language that prints your roll number in reverse order with
+;the format "22L-XXXX" at the specified row and column on the screen. Set the background color to red
+;and the foreground color to green.
+;Starting row: 12 Starting column: 40
+;The subroutine should reverse the order of the digits and letters in your roll number, ensuring the final
+;output looks like "XXXX-L22."
+
+[org 0x0100]
+jmp start
+msg: db '22L-6992'
+length: dw 8
+
+clrscr:
+push es
+push ax
+push di
+
+mov ax, 0xb800
+mov es, ax
+mov di,0
+
+nextloc:
+mov word[es:di], 0x0720
+add di,2
+cmp di, 4000
+jne nextloc
+
+pop di
+pop ax
+pop es
+ret
+
+printstr:
+push bp
+mov bp,sp
+push es
+push ax
+push cx
+push si
+push di
+mov ax, 0xb800
+mov es,ax
+mov al,80
+mul byte[bp + 10]
+add ax, [bp + 12]
+shl ax,1
+mov di, ax
+mov si,[bp + 6 ]
+mov cx, [bp + 4]
+mov ah, [bp+8]
+mov bx, cx
+shl bx, 1
+add di, bx
+
+nextchar:
+mov al, [si]
+mov [es:di], ax
+sub di,2
+add si, 1
+loop nextchar
+pop di
+pop si
+pop cx
+pop ax
+pop es
+pop bp
+ret 10
+
+start: call clrscr
+mov ax, 30
+push ax
+mov ax, 20
+push ax
+mov ax,66
+push ax
+mov ax, msg
+push ax
+push word [length]
+call printstr
+
+mov ax, 0x4c00
+int 0x21
