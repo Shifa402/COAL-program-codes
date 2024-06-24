@@ -1,0 +1,187 @@
+;Consider your video screen is divided in four equal parts, each part with 12 rows and 40 columns. (skip
+;the last row of the screen) Whenever user press ‘1’, memory area 1 is swapped with memory area 4.
+;And when user press ‘2’, memory area 2 is swapped with memory area 3. Write complete program using
+;string instructions.
+;memory 1: upper left
+;memory 2: upper right
+;memory 3: lower left
+;memory 4: lower right
+
+[org 0x0100]
+jmp start
+
+msg1: db 'Area 1'
+msg2: db 'Area 2'
+msg3: db 'Area 3'
+msg4: db 'Area 4'
+
+clrscr:
+push es
+push ax
+push cx
+push di
+
+mov ax, 0xb800
+mov es, ax
+mov di, 0
+mov ax, 0x0720
+mov cx, 2000
+
+cld
+rep stosw
+
+pop di
+pop cx
+pop ax
+pop es
+ret
+
+print:
+push bp
+mov bp,sp
+mov al, 80
+mul byte [bp+6]
+add ax, [bp+4]
+shl ax, 1
+mov di, ax
+mov ax, 0xb800
+mov es,ax
+mov ah, 0x07
+mov si, [bp+8]
+mov cx, 6
+cld
+nextpos:
+lodsb
+stosw
+loop nextpos
+pop bp
+ret
+
+
+customISR:
+push bp
+mov bp, sp
+
+cmp ah, 0x02
+je one_four
+mov bl, 0
+
+cmp ah, 0x03
+je two_three
+mov dl, 0
+ 
+ 
+one_four:
+inc bl
+mov bh, bl
+shr bl, 1
+jc odd
+
+even:
+mov ax, msg1
+push ax
+push word 6
+push word 20
+call print
+mov ax, msg4
+push ax
+push word 18
+push word 60
+call print
+mov bl, bh
+jmp end
+
+odd:
+mov ax, msg4
+push ax
+push word 6
+push word 20
+call print
+
+mov ax, msg1
+push ax
+push word 18
+push word 60
+call print
+
+mov bl, bh
+jmp end
+
+
+two_three:
+inc dl
+mov dh, dl
+shr dl, 1
+jc odd1
+even1:
+mov ax, msg2
+push ax
+push word 6
+push word 60
+call print
+
+mov ax, msg3
+push ax
+push word 18
+push word 20
+call print
+
+mov dl, dh
+jmp end
+
+odd1:
+mov ax, msg3
+push ax
+push word 6
+push word 60
+call print
+mov ax, msg2
+push ax
+push word 18
+push word 20
+call print
+mov dl, dh
+jmp end
+
+end:
+call hookint
+pop bp
+iret
+
+hookint:
+mov ah,0
+int 16h
+call customISR
+ret
+
+start:
+call clrscr
+
+mov ax, msg1
+push ax
+push word 6
+push word 20
+call print
+
+mov ax, msg2
+push ax
+push word 6
+push word 60
+call print
+
+mov ax, msg3
+push ax
+push word 18
+push word 20
+call print
+
+mov ax, msg4
+push ax
+push word 18
+push word 60
+call print
+
+call hookint
+
+mov ax, 0x4c00
+int 0x21
