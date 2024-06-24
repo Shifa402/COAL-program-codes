@@ -1,0 +1,149 @@
+;Write a subroutine ‘flip’ that creates a flipped image of the upper half of the screen on the lower half
+;such that the top left character appears as the bottom right character in the flipped image.
+;Note that the subroutine will override the original lower half.
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;Original Image: Abcdef
+
+;                ghijk
+
+;                qrstuv
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;Flipped Image:  Abcdef
+
+;                ghijk
+
+;                                    fedcbA
+
+
+[org 0x0100]
+jmp start
+
+str1: db 'Abcdef', 0
+str2: db 'ghijk', 0
+str3: db 'qrstuv', 0
+
+clrscr:
+push es
+push ax
+push cx
+push di
+
+mov ax, 0xb800
+mov es, ax
+xor di, di
+mov ax, 0x0720
+mov cx, 2000
+
+cld
+rep stosw
+pop di
+pop cx
+pop ax
+pop es
+
+ret
+
+
+flip:
+push bp
+mov bp, sp
+push es
+push ax
+push cx
+push si 
+push di
+push ds
+
+mov ax, 0xb800
+mov es, ax
+mov di, 0
+mov si, [bp+8]
+
+cld
+next_char1:
+mov ah, 0x07
+lodsb
+stosw
+cmp byte [si], 0
+jne next_char1
+
+xor ax, ax
+mov al, 80
+mov dl, 12
+mul byte dl
+add ax, 0
+shl ax, 1
+mov di, ax
+mov si, [bp+6]
+
+cld
+next_char2:
+mov ah, 0x07
+lodsb
+stosw
+cmp byte [si], 0
+jne next_char2
+
+xor ax, ax
+mov al, 80
+mov dl, 23
+mul byte dl
+add ax, 0
+shl ax, 1
+mov di, ax
+mov si, [bp+4]
+
+cld
+next_char3:
+mov ah, 0x07
+lodsb
+stosw
+cmp byte [si], 0
+jne next_char3
+
+
+mov di, 2080
+mov ax, 0x0720
+mov cx, 1040
+
+cld
+rep stosw          ;clear lower half of screen and remove str3 that was previously printed
+
+
+mov di, 3998
+mov ah, 0x07
+mov si, [bp+8]
+
+reverse:
+cld
+lodsb
+std
+stosw
+cmp byte [si], 0
+jne reverse
+
+
+pop ds
+pop di
+pop si
+pop cx
+pop ax
+pop es
+pop bp
+ret 6
+
+
+start:
+call clrscr
+
+mov ax, str1
+push ax
+mov ax, str2
+push ax
+mov ax, str3
+push ax
+
+call flip
+
+mov ax, 0x4c00
+int 0x21
