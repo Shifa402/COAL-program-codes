@@ -1,0 +1,30 @@
+;Write code in assembly language print ‘_’ (underscore) on the first 13 
+;rows of a black screen and ‘.’ on the rest of the rows.
+
+[org 0x100]
+jmp start
+clrscr:
+push es
+push ax
+push di
+mov ax,0xb800
+mov es,ax
+mov di,0
+nextloc:
+mov word [es:di],0x075f
+add di,2
+cmp di,2080
+jne nextloc
+nextchar:
+mov word [es:di],0x072e
+add di,2
+cmp di,4000
+jne nextchar
+pop di
+pop ax
+pop es
+ret
+start:
+call clrscr
+mov ax,0x4c00
+int 21h
