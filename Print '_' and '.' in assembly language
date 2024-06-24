@@ -1,4 +1,4 @@
-;Write code in assembly language print ‘_’ (underscore) on the first 13 
+;Write code in assembly language to print ‘_’ (underscore) on the first 13 
 ;rows of a black screen and ‘.’ on the rest of the rows.
 
 [org 0x100]
