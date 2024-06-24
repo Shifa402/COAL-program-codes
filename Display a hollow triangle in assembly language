@@ -1,0 +1,95 @@
+;Write a Subroutine ‘HollowTriangle’, that takes 3 parameters on the stack.
+;1. The memory address of the character is to be printed to form a triangle.
+;2. The starting row of the triangle
+;3. Ending row of the triangle
+;The subroutine then prints the outline of a triangle, using the character specified in memory. It will start
+;in the middle of the screen from the row mentioned as the starting row and go down to the ending row.
+;The starting row will have only one character in the middle of the screen - Column 40. All the rows
+;between the starting and ending rows will have two characters in them, with a certain number of spaces
+;between the two characters, the number of spaces will depend on the row number. For example, the
+;second row (of the triangle) will have one space; the third row will have three, and so on. The ending
+;row will be a row of the character.
+
+[org 0x0100]
+jmp start
+char: db 0x25
+
+clrscr:
+push es
+push ax
+push di
+
+mov ax, 0xb800
+mov es, ax
+mov di, 0
+
+nextloc:
+mov word [es:di], 0x0720
+add di, 2
+cmp di, 4000
+jne nextloc
+
+pop di
+pop ax
+pop es
+ret
+
+
+
+print_last:
+push bp
+mov bp, sp
+push es
+push ax
+push cx
+;push si
+push di
+
+mov ax, 0xb800
+mov es, ax
+;mov bl, [bp + 8]
+mov al, 80
+mul byte [bp + 8]
+add ax, 34
+shl ax, 1
+mov di, ax
+mov al, [bp + 4]
+mov ah, 0x07
+mov cx, 13
+;push cx
+
+
+next_pos:
+mov [es:di], ax
+add di, 2
+loop next_pos
+
+mov cx, 7
+print_right:
+sub di, 162
+mov [es:di], ax
+loop print_right
+
+mov cx, 6
+print_left:
+add di, 158
+mov [es:di], ax
+loop print_left
+
+popa
+ret 6
+
+
+start:
+call clrscr
+mov ax, 20     ;ending row
+push ax
+mov ax, 5     ;starting row
+push ax
+mov ax, [char]
+push ax
+
+call print_last
+
+end: mov ax, 0x4c00
+     int 0x21
