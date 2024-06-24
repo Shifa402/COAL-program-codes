@@ -1,0 +1,87 @@
+;Write a subroutine in assembly language to change the text color of each row on the screen
+;sequentially. Start with the first row, which should be displayed in red. Then, move to the second row
+;with blue text, and continue this pattern for the entire screen.
+
+[org 0x0100]
+jmp start
+msg: db 'A'
+length: dw 80
+
+clrscr:
+push es
+push ax
+push di
+
+mov ax, 0xb800
+mov es, ax
+mov di,0
+
+nextloc:
+mov word[es:di], 0x0720
+add di,2
+cmp di, 4000
+jne nextloc
+
+pop di
+pop ax
+pop es
+ret
+
+txtcolor:
+push bp
+mov bp,sp
+push es
+push ax
+push bx
+push cx
+push si
+push di
+
+mov ax,0xb800
+mov es,ax
+mov bx,0
+mov di,0
+
+line_by_line:
+mov cx,[bp+8]
+mov si,[bp+10]
+
+nextchar:
+mov dx,bx
+and dx,1
+jz red_on
+mov ah,[bp+4]
+
+continue:
+mov al,[si]
+mov [es:di],ax
+add di,2
+loop continue
+
+add bx,1
+cmp bx,25
+jne line_by_line
+
+popa
+ret 10
+
+red_on:
+mov ah,[bp+6]
+jmp continue
+
+
+start:
+call clrscr
+
+mov ax, msg
+push ax
+push word[length]
+mov ax,4    ;red text color
+push ax
+mov ax,1    ;blue text color
+push ax
+
+call txtcolor
+
+mov ax,0x4c00
+int 0x21
